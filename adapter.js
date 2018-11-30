@@ -24,7 +24,8 @@ class AbstractAdapter
         return ``;
     }
 
-    static factory(chainName) {
+    static factory(chainName)
+    {
         if (!(chainName in items)) {
             switch (chainName) {
                 case ChainConstant.STEEM:
@@ -97,11 +98,13 @@ class AbstractAdapter
         return 10000;
     }
 
-    isWif(wif) {
+    isWif(wif)
+    {
         return this.connection.auth.isWif(wif);
     }
 
-    async isWifValid(username, wif, successCallback, failCallback) {
+    async isWifValid(username, wif, successCallback, failCallback)
+    {
         while (true === this.connection.config.get(keyConnBusy)) {
             console.info(this.name + `:isWifValid: wait execution for 1 sec`);
 
@@ -214,7 +217,8 @@ class AbstractAdapter
         return tool.stripPlaceholders(postBody) + constant.postBodySign;
     }
 
-    async broadcastSend(wif, author, permlink, operations) {
+    async broadcastSend(wif, author, permlink, operations)
+    {
         while (true === this.connection.config.get(keyConnBusy)) {
             console.info(this.name + `:broadcastSend: wait execution for 1 sec`);
 
@@ -256,7 +260,8 @@ class AbstractAdapter
         });
     }
 
-    async processGetGetContent(author, permlink, votes, callback) {
+    async processGetGetContent(author, permlink, votes, callback)
+    {
         this.connection.config.set(keyConnBusy, true);
         if (votes === null) {
             this.connection.api.getContent(author, permlink, function (err, result) {
@@ -269,11 +274,13 @@ class AbstractAdapter
         }
     }
 
-    getReturnVotesParameter() {
+    getReturnVotesParameter()
+    {
         return null
     }
 
-    vote(url, accounts) {
+    vote(url, accounts)
+    {
         let params = tool.parsePostUrl(url);
 
         this.reconnect();
@@ -333,7 +340,8 @@ class AbstractAdapter
         });
     }
 
-    async processAccountsInfo(accounts, callback) {
+    async processAccountsInfo(accounts, callback)
+    {
         let adapterInstance = this;
 
         adapterInstance.reconnect();
@@ -366,7 +374,8 @@ class AbstractAdapter
         });
     }
 
-    async processContent(url, callback) {
+    async processContent(url, callback)
+    {
         let params = tool.parsePostUrl(url);
 
         this.reconnect();
@@ -408,7 +417,8 @@ class AbstractAdapter
         });
     }
 
-    buildVoteOperations(author, permlink, weight, accounts) {
+    buildVoteOperations(author, permlink, weight, accounts)
+    {
         let operations = [];
         for (let username in accounts) {
             operations.push([
@@ -425,7 +435,8 @@ class AbstractAdapter
         return operations;
     }
 
-    async claimRewardBalance(wif, username, successCallback, failCallback) {
+    async claimRewardBalance(wif, username, successCallback, failCallback)
+    {
         let adapterInstance = this;
 
         this.reconnect();
@@ -480,7 +491,7 @@ class Steem extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterSteem;
+        this.name = ChainConstant.STEEM;
         this.connection = require(`@steemit/steem-js`);
 
         if (false === this.connection.config.get(keyConnBusy)) {
@@ -553,7 +564,7 @@ class Golos extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterGolos;
+        this.name = ChainConstant.GOLOS;
         this.connection = require(`golos-js`);
     }
 
@@ -599,7 +610,7 @@ class Vox extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterVox;
+        this.name = ChainConstant.VOX;
         this.connection = require(`@steemit/steem-js`);
 
         if (false === this.connection.config.get(keyConnBusy)) {
@@ -655,7 +666,7 @@ class Wls extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterWls;
+        this.name = ChainConstant.WLS;
         this.connection = require(`wlsjs-staging`);
         this.reconnect();
     }
@@ -710,7 +721,7 @@ class Serey extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterSerey;
+        this.name = ChainConstant.SEREY;
         this.connection = require(`@steemit/steem-js`);
 
         if (false === this.connection.config.get(keyConnBusy)) {
@@ -745,7 +756,7 @@ class Weku extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterWeku;
+        this.name = ChainConstant.WEKU;
         this.connection = require(`@steemit/steem-js`);
 
         if (false === this.connection.config.get(keyConnBusy)) {
@@ -783,7 +794,7 @@ class Smoke extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterSmoke;
+        this.name = ChainConstant.SMOKE;
         if (false === tool.isTerminal()) {
             this.connection = require(`./static/smoke-js.min`).smoke;
         }
@@ -848,7 +859,7 @@ class Viz extends AbstractAdapter
     constructor() {
         super();
 
-        this.name = constant.adapterViz;
+        this.name = ChainConstant.VIZ;
         this.connection = require(`viz-world-js`);
     }
 
