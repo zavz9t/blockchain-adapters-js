@@ -1,0 +1,40 @@
+{
+  "name": "blockchain-adapters-js",
+  "version": "0.1.0",
+  "description": "A list of adapters to different BlockChain platforms.",
+  "main": "a.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:zavz9t/blockchain-adapters-js.git"
+  },
+  "keywords": [
+    "blockchain",
+    "steem",
+    "golos",
+    "weku",
+    "serey",
+    "vox",
+    "viz"
+  ],
+  "author": "Serhiy Walker <zavzyat@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@scorum/scorum-js": "^2.10.0",
+    "@steemit/steem-js": "^0.7.2",
+    "golos-js": "^0.7.5",
+    "viz-world-js": "^0.9.10",
+    "wlsjs-staging": "^0.1.4",
+    "sprintf-js": "^1.1.1"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "mock-require": "^3.0.2"
+  },
+  "engines": {
+    "node": "10.x"
+  }
+}
