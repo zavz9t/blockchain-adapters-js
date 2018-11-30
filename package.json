@@ -2,10 +2,8 @@
   "name": "blockchain-adapters-js",
   "version": "0.1.0",
   "description": "A list of adapters to different BlockChain platforms.",
-  "main": "a.js",
   "scripts": {
-    "test": "mocha",
-    "start": "node bot.js"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",

@@ -6,7 +6,7 @@ let items = []
     , sprintf = require(`sprintf-js`).sprintf
     , sleep = require(`sleep-promise`)
     , jQuery = require(`jquery`)
-    , constant = require(`./constant`)
+    , ChainConstant = require(`./constant`)
     , tool = require(`./tool`)
 ;
 
@@ -27,28 +27,28 @@ class AbstractAdapter
     static factory(chainName) {
         if (!(chainName in items)) {
             switch (chainName) {
-                case constant.adapterSteem:
+                case ChainConstant.STEEM:
                     items[chainName] = new Steem();
                     break;
-                case constant.adapterGolos:
+                case ChainConstant.GOLOS:
                     items[chainName] = new Golos();
                     break;
-                case constant.adapterVox:
+                case ChainConstant.VOX:
                     items[chainName] = new Vox();
                     break;
-                case constant.adapterWls:
+                case ChainConstant.WLS:
                     items[chainName] = new Wls();
                     break;
-                case constant.adapterSerey:
+                case ChainConstant.SEREY:
                     items[chainName] = new Serey();
                     break;
-                case constant.adapterWeku:
+                case ChainConstant.WEKU:
                     items[chainName] = new Weku();
                     break;
-                case constant.adapterSmoke:
+                case ChainConstant.SMOKE:
                     items[chainName] = new Smoke();
                     break;
-                case constant.adapterViz:
+                case ChainConstant.VIZ:
                     items[chainName] = new Viz();
                     break;
                 default:
@@ -1018,4 +1018,4 @@ class Viz extends AbstractAdapter
     }
 }
 
-module.exports.AbstractAdapter = AbstractAdapter;
+module.exports = AbstractAdapter;
