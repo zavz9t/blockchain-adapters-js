@@ -1,3 +1,5 @@
+'use strict';
+
 const appName = `@chain-post`
     , keyConnBusy = `busy`
 ;
@@ -7,7 +9,7 @@ let items = []
     , sleep = require(`sleep-promise`)
     , jQuery = require(`jquery`)
     , ChainConstant = require(`./constant`)
-    , tool = require(`./tool`)
+    // , tool = require(`./tool`)
 ;
 
 class AbstractAdapter

@@ -1,6 +1,6 @@
 'use strict';
 
-exports = {
+module.exports = {
     ChainAdapter: require(`./adapter`)
     , ChainConstant: require(`./constant`)
 };
