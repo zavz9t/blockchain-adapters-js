@@ -1,13 +1,13 @@
 {
-  "name": "blockchain-adapters-js",
-  "version": "0.1.0",
-  "description": "A list of adapters to different BlockChain platforms.",
+  "name": "chain-tools-js",
+  "version": "0.1.1",
+  "description": "A batch of tools to work with BlockChains.",
   "scripts": {
     "test": "mocha"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:zavz9t/blockchain-adapters-js.git"
+    "url": "git+ssh://git@github.com:zavz9t/chain-tools-js.git"
   },
   "keywords": [
     "blockchain",
