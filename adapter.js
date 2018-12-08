@@ -4,7 +4,7 @@ const appName = `@chain-post`
     , keyConnBusy = `busy`
 ;
 
-let items = []
+let items = {}
     , sprintf = require(`sprintf-js`).sprintf
     , sleep = require(`sleep-promise`)
     , jQuery = require(`jquery`)
@@ -12,8 +12,8 @@ let items = []
     // , tool = require(`./tool`)
 ;
 
-class AbstractAdapter
-{
+class AbstractAdapter {
+
     constructor() {
         this.name = null;
         this.connection = null;
@@ -21,13 +21,11 @@ class AbstractAdapter
 
     reconnect() {}
 
-    static getCurrency()
-    {
+    static getCurrency() {
         return ``;
     }
 
-    static factory(chainName)
-    {
+    static factory(chainName) {
         if (!(chainName in items)) {
             switch (chainName) {
                 case ChainConstant.STEEM:
@@ -55,18 +53,17 @@ class AbstractAdapter
                     items[chainName] = new Viz();
                     break;
                 default:
-                    throw sprintf(
-                        `factory: Chain "%s" is not implemented yet!`,
+                    throw new Error(sprintf(
+                        `Chain "%s" is not implemented yet!`,
                         chainName
-                    );
+                    ));
             }
         }
 
         return items[chainName];
     }
 
-    static buildJsonMetadata(tags, options)
-    {
+    static buildJsonMetadata(tags, options) {
         let imagesList = [];
         if (options && `images` in options) {
             imagesList = options.images;
@@ -80,28 +77,23 @@ class AbstractAdapter
         }
     }
 
-    static buildBeneficiaries(options)
-    {
+    static buildBeneficiaries(options) {
         return [ {account: `chain-post`, weight: 500} ]
     }
 
-    static buildPermlink(postTitle)
-    {
+    static buildPermlink(postTitle) {
         return tool.stripAndTransliterate(postTitle, `-`, ``);
     }
 
-    static getPlaceholders()
-    {
+    static getPlaceholders() {
         return constant.placeholders;
     }
 
-    static getPercentSteemDollars()
-    {
+    static getPercentSteemDollars() {
         return 10000;
     }
 
-    isWif(wif)
-    {
+    isWif(wif) {
         return this.connection.auth.isWif(wif);
     }
 
@@ -339,6 +331,34 @@ class AbstractAdapter
                     }
                 }
             );
+        });
+    }
+
+    /**
+     * Provides account information for specifed username
+     * @param {string} username
+     * @returns {Promise<Object>}
+     */
+    async getAccount(username)
+    {
+        const currentInstance = this;
+        return new Promise((resolve, reject) => {
+            currentInstance.reconnect();
+            currentInstance.connection.api.getAccounts([username], function (err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    if (result.length) {
+                        resolve(result[0]);
+                    } else {
+                        reject(new Error(sprintf(
+                            `Account "%s" not found in "%s" BlockChain.`
+                            , username
+                            , currentInstance.name
+                        )));
+                    }
+                }
+            });
         });
     }
 
