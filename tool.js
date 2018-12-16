@@ -8,7 +8,7 @@ const STEEMIT_BANDWIDTH_AVERAGE_WINDOW_SECONDS = 60 * 60 * 24 * 7
 
 let numeral = require(`numeral`);
 
-module.exports = class ChainTool {
+class ChainTool {
 
     static calculateAccountReputation(account) {
         let out = Math.log10(account.reputation);
@@ -38,9 +38,9 @@ module.exports = class ChainTool {
     }
 
     static calculateAccountOwnPower(account, gp, raw) {
-        let value = Tool.vestsToPower(account.vesting_shares, gp);
+        let value = ChainTool.vestsToPower(account.vesting_shares, gp);
 
-        return raw ? value : Tool.formatPower(value)
+        return raw ? value : ChainTool.formatPower(value)
     }
 
     static calculateAccountReceivedPower(account, gp, raw) {
@@ -48,9 +48,9 @@ module.exports = class ChainTool {
             return 0;
         }
 
-        let value = Tool.vestsToPower(account.received_vesting_shares, gp);
+        let value = ChainTool.vestsToPower(account.received_vesting_shares, gp);
 
-        return raw ? value : Tool.formatPower(value)
+        return raw ? value : ChainTool.formatPower(value)
     }
 
     static calculateAccountDelegatedPower(account, gp, raw) {
@@ -58,18 +58,18 @@ module.exports = class ChainTool {
             return 0;
         }
 
-        let value = Tool.vestsToPower(account.delegated_vesting_shares, gp);
+        let value = ChainTool.vestsToPower(account.delegated_vesting_shares, gp);
 
-        return raw ? value : Tool.formatPower(value)
+        return raw ? value : ChainTool.formatPower(value)
     }
 
     static calculateAccountFullPower(account, gp, raw) {
-        let value = Tool.calculateAccountOwnPower(account, gp, true)
-            + Tool.calculateAccountReceivedPower(account, gp, true)
-            - Tool.calculateAccountDelegatedPower(account, gp, true)
+        let value = ChainTool.calculateAccountOwnPower(account, gp, true)
+            + ChainTool.calculateAccountReceivedPower(account, gp, true)
+            - ChainTool.calculateAccountDelegatedPower(account, gp, true)
         ;
 
-        return raw ? value : Tool.formatPower(value)
+        return raw ? value : ChainTool.formatPower(value)
     }
 
     static calculateAccountVotingPower(account) {
@@ -89,9 +89,9 @@ module.exports = class ChainTool {
 
             return (currentMana * 100 / maxMana).toFixed(2);
         } else if (`energy` in account) {
-            return (Tool.calculateVpCurrentValue(account, `energy`) / 100)
+            return (ChainTool.calculateVpCurrentValue(account, `energy`) / 100)
         } else {
-            return (Tool.calculateVpCurrentValue(account, `voting_power`) / 100)
+            return (ChainTool.calculateVpCurrentValue(account, `voting_power`) / 100)
         }
     }
 
@@ -110,7 +110,7 @@ module.exports = class ChainTool {
     static formatBalance(balance) {
         let parts = balance.split(` `);
 
-        parts[0] = Tool.formatPower(parts[0]);
+        parts[0] = ChainTool.formatPower(parts[0]);
 
         return parts.join(` `)
     }
@@ -118,4 +118,6 @@ module.exports = class ChainTool {
     static calculateAccountEstimatedValue(account, gp) {
 
     }
-};
+}
+
+module.exports = ChainTool;

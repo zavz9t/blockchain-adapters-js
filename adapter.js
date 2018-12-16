@@ -335,11 +335,11 @@ class AbstractAdapter {
     }
 
     /**
-     * Provides account information for specifed username
+     * Provides account information for specified username
      * @param {string} username
      * @returns {Promise<Object>}
      */
-    async getAccount(username)
+    async apiGetAccount(username)
     {
         const currentInstance = this;
         return new Promise((resolve, reject) => {
@@ -359,6 +359,72 @@ class AbstractAdapter {
                     }
                 }
             });
+        });
+    }
+
+    /**
+     * Provides information about post/comment
+     * @param {string}   author   Username of author
+     * @param {string}   permlink
+     * @param {int|null} votes    Need to return active votes of post/comment. Null - this not implemented in library
+     * @returns {Promise<Object>}
+     */
+    async apiGetContent(author, permlink, votes = null)
+    {
+        const currentInstance = this;
+        return new Promise((resolve, reject) => {
+            const callbackFunction = function (err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            };
+
+            currentInstance.reconnect();
+            if (votes === null) {
+                currentInstance.connection.api.getContent(author, permlink, callbackFunction);
+            } else {
+                currentInstance.connection.api.getContent(author, permlink, votes, callbackFunction);
+            }
+        });
+    }
+
+    /**
+     * Performs vote operation for post/comment
+     * @param {string} author   Username of author
+     * @param {string} permlink
+     * @param {string} voter    Username of voter
+     * @param {string} wif      Private key (WIF) of voter
+     * @param {int}    weight   Weight of vote
+     * @returns {Promise<Object>}
+     */
+    async broadcastVote(author, permlink, voter, wif, weight)
+    {
+        const currentInstance = this;
+        return new Promise((resolve, reject) => {
+            currentInstance.connection.broadcast.send(
+                {
+                    extensions: []
+                    , operations: [[
+                        `vote`,
+                        {
+                            voter: voter,
+                            author: author,
+                            permlink: permlink,
+                            weight: weight
+                        }
+                    ]]
+                },
+                { posting: wif },
+                function (err, result) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
         });
     }
 
@@ -704,7 +770,7 @@ class Wls extends AbstractAdapter
     }
 
     reconnect() {
-        this.connection.api.setOptions({ url: `https://rpc.wls.services` })
+        this.connection.api.setOptions({ url: `https://pubrpc.whaleshares.io` })
     }
 
     async claimRewardBalanceProcess(wif, account, gp, successCallback, failCallback) {
