@@ -6,7 +6,9 @@ const STEEMIT_BANDWIDTH_AVERAGE_WINDOW_SECONDS = 60 * 60 * 24 * 7
     , CHAIN_ENERGY_REGENERATION_SECONDS = 432000 // 432000 sec = 5 days
 ;
 
-let numeral = require(`numeral`);
+let numeral = require(`numeral`)
+    , urlParse = require(`url-parse`)
+;
 
 class ChainTool {
 
@@ -117,6 +119,65 @@ class ChainTool {
 
     static calculateAccountEstimatedValue(account, gp) {
 
+    }
+
+    /**
+     * Parses URL of post in any Chain and returns Object with it author and permlink
+     * @param {string} url
+     * @returns {Object|null} Object where "author" is author of post and "permlink" it's permlink
+     *                          or null on fail
+     */
+    static parsePostUrl(url) {
+        let parsed = urlParse(url.toLowerCase())
+            , parts = parsed.pathname.split(`/`)
+            , queryParams = this.parseQueryParams(parsed.query)
+            , authorIndex = 0
+        ;
+        if (`author` in queryParams && `permlink` in queryParams) {
+            return {
+                author: queryParams[`author`]
+                , permlink: queryParams[`permlink`]
+            };
+        }
+
+        for (let i in parts) {
+            if (parts[i].length === 0) {
+                continue;
+            }
+            if (parts[i][0] === `@`) {
+                authorIndex = i * 1;
+                break;
+            }
+        }
+        if (authorIndex === 0) {
+            return null;
+        }
+
+        return {
+            author: parts[authorIndex].slice(1),
+            permlink: parts[authorIndex + 1]
+        };
+    }
+
+    /**
+     * Parses URL query string and returns Object with it
+     * @param {string} queryString
+     * @return {Object}
+     */
+    static parseQueryParams(queryString) {
+        if (queryString[0] === `?`) {
+            queryString = queryString.slice(1);
+        }
+        let queryParts = queryString.split(`&`)
+            , queryParams = {}
+        ;
+
+        for (let i in queryParts) {
+            let [key, val] = queryParts[i].split(`=`);
+            queryParams[key] = decodeURIComponent(val);
+        }
+
+        return queryParams;
     }
 }
 

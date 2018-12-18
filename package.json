@@ -1,6 +1,6 @@
 {
   "name": "chain-tools-js",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A batch of tools to work with BlockChains.",
   "scripts": {
     "test": "mocha"
@@ -29,7 +29,8 @@
     "sleep-promise": "^8.0.1",
     "sprintf-js": "^1.1.2",
     "viz-world-js": "^0.9.10",
-    "wlsjs-staging": "^0.1.4"
+    "wlsjs-staging": "^0.1.4",
+    "url-parse": "^1.4.4"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
