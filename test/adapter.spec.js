@@ -26,24 +26,81 @@ describe(`adapter`, () => {
         const errorDataProvider = [
             {
                 input: []
+                , errorContain: `"author"`
                 , message: `Cannot create "comment" without arguments.`
             },
             {
                 input: [``, ``, ``, {}]
+                , errorContain: `"author"`
                 , message: `Empty arguments are not allowed.`
             },
             {
                 input: [`author`, `wif`, `body`, {}]
-                , message: `Options cannot be empty.`
+                , errorContain: `"options"`
+                , message: `"options" cannot be empty.`
             },
             {
-                input: [`author`, `wif`, `body`, {}]
-                , message: `Options cannot be empty.`
+                input: [`author`, `wif`, `body`, { app: `some-app` }]
+                , errorContain: `"title"`
+                , message: `"title" required in "options" at new Post case.`
+            },
+            {
+                input: [`author`, `wif`, `body`, { title: `` }]
+                , errorContain: `"title"`
+                , message: `"title" cannot be empty in "options" at new Post case.`
+            },
+            {
+                input: [`author`, `wif`, `body`, { title: `some-title`, app: `` }]
+                , errorContain: `"app"`
+                , message: `"app" cannot be empty in "options".`
+            },
+            {
+                input: [`author`, `wif`, `body`, { title: `some-title`, format: `` }]
+                , errorContain: `"format"`
+                , message: `"format" cannot be empty in "options".`
+            },
+            {
+                input: [`author`, `wif`, `body`, { title: `some-title`, permlink: `` }]
+                , errorContain: `"permlink"`
+                , message: `"permlink" cannot be empty in "options".`
+            },
+            {
+                input: [
+                    `author`
+                    , `wif`
+                    , `body`
+                    , {
+                        parent_author: `some-author`
+                        , parent_permlink: ``
+                    }
+                ]
+                , errorContain: `"parent_permlink"`
+                , message: `"parent_permlink" required in "options" at comment case.`
+            },
+            {
+                input: [
+                    `author`
+                    , `wif`
+                    , `body`
+                    , { title: `some-title` }
+                ]
+                , errorContain: `"tags"`
+                , message: `"tags" are required in "options" at Post case.`
+            },
+            {
+                input: [
+                    `author`
+                    , `wif`
+                    , `body`
+                    , { title: `some-title`, tags: [] }
+                ]
+                , errorContain: `"tags"`
+                , message: `"tags" cannot be empty in "options" at Post case.`
             },
         ];
 
-        errorDataProvider.forEach(({ input, message }) => {
-            it.only(`When called with "${input}" arguments`, async () => {
+        errorDataProvider.forEach(({ input, errorContain, message }) => {
+            it(`When called with "${input}" arguments`, async () => {
                 // given
                 const broadcastMock = sandbox.mock(adapter.connection.broadcast);
                 broadcastMock.expects(`send`).never();
@@ -64,8 +121,12 @@ describe(`adapter`, () => {
                     should.fail(message);
                 } else {
                     resultError.should.be.an(`error`);
+                    resultError.message.should.have.string(
+                        errorContain
+                        , `Expected validator should fail.`
+                    );
                 }
-console.log(resultError);
+
                 broadcastMock.verify();
                 adapterMock.verify();
             });

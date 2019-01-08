@@ -23,17 +23,16 @@ module.exports = class {
         validator(body).display(`body`).required().isString().notEmpty();
 
         validator(options).display(`options`).required().isObject((obj) => {
-            // obj(`app`).isString().notEmpty();
-            // obj(`format`).isString().notEmpty();
-            // obj(`beneficiaries`).isObject();
+            obj(`app`).isString().notEmpty();
+            obj(`format`).isString().notEmpty();
             obj(`parent_author`).if(
                 (value) => (undefined === value || null === value || `` === value)
                 , (conditional) => { // post case
                     obj(`title`).required().isString().notEmpty();
                     obj(`permlink`).isString().notEmpty();
-                    obj(`tags`).isArray((item) => {
-                        item.isString().required().notEmpty();
-                    });
+                    obj(`tags`).required().isArray((item) => {
+                        item.required().isString().notEmpty();
+                    }).lengthInRange(1);
                 }
             );
             obj(`parent_author`).if(
