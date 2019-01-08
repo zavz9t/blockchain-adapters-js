@@ -6,8 +6,12 @@ const STEEMIT_BANDWIDTH_AVERAGE_WINDOW_SECONDS = 60 * 60 * 24 * 7
     , CHAIN_ENERGY_REGENERATION_SECONDS = 432000 // 432000 sec = 5 days
 ;
 
-let numeral = require(`numeral`)
+const numeral = require(`numeral`)
+    , { sprintf } = require(`sprintf-js`)
     , urlParse = require(`url-parse`)
+    , moment = require(`moment`)
+    , commentPermlinkPattern = `re-%s-%s-%s`
+    , permlinkDatetimeFormat = `YYYYMMDD[t]HHmmss[z]`
 ;
 
 class ChainTool {
@@ -128,6 +132,10 @@ class ChainTool {
      *                          or null on fail
      */
     static parsePostUrl(url) {
+        if (!url) {
+            return null;
+        }
+
         let parsed = urlParse(url.toLowerCase())
             , parts = parsed.pathname.split(`/`)
             , queryParams = this.parseQueryParams(parsed.query)
@@ -179,6 +187,126 @@ class ChainTool {
 
         return queryParams;
     }
+
+    /**
+     * Perform transliteration cyrillic symbols to latin and strip not allowed symbols
+     * @param {string} input
+     * @param {string} spaceReplacement
+     * @param {string} ruPrefix
+     *
+     * @returns {string}
+     */
+    static stripAndTransliterate(input, spaceReplacement = `-`, ruPrefix = `ru--`) {
+        let translitAssoc = {
+            "ые": "yie",
+            "щ": "shch",
+            "ш": "sh",
+            "ч": "ch",
+            "ц": "cz",
+            "й": "ij",
+            "ё": "yo",
+            "э": "ye",
+            "ю": "yu",
+            "я": "ya",
+            "х": "kh",
+            "ж": "zh",
+            "а": "a",
+            "б": "b",
+            "в": "v",
+            "ґ": "g",
+            "г": "g",
+            "д": "d",
+            "е": "e",
+            "є": "e",
+            "з": "z",
+            "и": "i",
+            "і": "i",
+            "ї": "i",
+            "к": "k",
+            "л": "l",
+            "м": "m",
+            "н": "n",
+            "о": "o",
+            "п": "p",
+            "р": "r",
+            "с": "s",
+            "т": "t",
+            "у": "u",
+            "ф": "f",
+            "ъ": "xx",
+            "ы": "y",
+            "ь": "x"
+        };
+
+        if (!input) {
+            return ``;
+        }
+
+        let result = input.toLowerCase()
+            .replace(/[\s,\.\/]/g, spaceReplacement)
+        ;
+
+        let origResult = result;
+        for (let ruChar in translitAssoc) {
+            result = result.replace(new RegExp(ruChar, 'gu'), translitAssoc[ruChar]);
+        }
+        let containRu = false;
+        if (origResult !== result) {
+            containRu = true;
+        }
+
+        result = result.replace(new RegExp('[^a-z0-9\\' + spaceReplacement + ']', 'g'), '')
+            .replace(new RegExp(spaceReplacement + '+', 'g'), spaceReplacement);
+
+        if (result[0] === spaceReplacement) {
+            result = result.substring(1);
+        }
+        if (result[result.length - 1] === spaceReplacement) {
+            result = result.substring(0, result.length - 1);
+        }
+
+        // If string include ru character it should be prefixed by special prefix to roll back
+        if (containRu) {
+            result = ruPrefix + result;
+        }
+
+        return result;
+    }
+
+    /**
+     * Builds permlink for new comment
+     * @param {string} postAuthor
+     * @param {string} postPermlink
+     *
+     * @return {string|null} Constructed permlink or null on fail
+     */
+    static buildCommentPermlink(postAuthor, postPermlink) {
+        if (false === Boolean(postAuthor) || false === Boolean(postPermlink)) {
+            return null;
+        }
+
+        return sprintf(
+            commentPermlinkPattern
+            , postAuthor
+            , postPermlink
+            , moment().utc().format(permlinkDatetimeFormat)
+        );
+    }
+
+    /**
+     * Builds unique permlink from given one
+     * @param {string} permlink
+     *
+     * @return {string}
+     */
+    static buildUniquePermlink(permlink) {
+        return sprintf(
+            `%s-%s`
+            , permlink
+            , moment().utc().format(permlinkDatetimeFormat)
+        );
+    }
+
 }
 
 module.exports = ChainTool;

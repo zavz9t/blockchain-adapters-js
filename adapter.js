@@ -4,12 +4,18 @@ const appName = `@chain-post`
     , keyConnBusy = `busy`
 ;
 
-let items = {}
-    , sprintf = require(`sprintf-js`).sprintf
+let items = {};
+
+const { sprintf } = require(`sprintf-js`)
     , sleep = require(`sleep-promise`)
     , jQuery = require(`jquery`)
+    , AdapterValidator = require(`./validator/AdapterValidator`)
     , ChainConstant = require(`./constant`)
-    // , tool = require(`./tool`)
+    , ChainTool = require(`./tool`)
+;
+
+const _buildPostOperation = Symbol(`buildPostOperation`)
+    , _buildCommentOperation = Symbol(`buildCommentOperation`)
 ;
 
 class AbstractAdapter {
@@ -21,11 +27,27 @@ class AbstractAdapter {
 
     reconnect() {}
 
-    static getCurrency() {
-        return ``;
+    /**
+     * Returns currency of implementing BlockChain
+     * @return {string}
+     */
+    getCurrency() {
+        throw new Error(`Need to implement in subclasses!`);
     }
 
-    static factory(chainName) {
+    /**
+     * @param {string} chainName Unique name of Chain
+     * @param {boolean} fresh If true - will create new instance,
+     *                          false - will return existing one
+     *
+     * @returns {AbstractAdapter}
+     *
+     * @throws Error If given Chain is not supported yet.
+     */
+    static factory(chainName, fresh = false) {
+        if (fresh && (chainName in items)) {
+            delete items[chainName];
+        }
         if (!(chainName in items)) {
             switch (chainName) {
                 case ChainConstant.STEEM:
@@ -63,6 +85,55 @@ class AbstractAdapter {
         return items[chainName];
     }
 
+    /**
+     * Returns default value for "max_accepted_payout" comment option
+     * @return {string}
+     */
+    getDefaultMaxAcceptedPayout() {
+        return `1000000.000 ` + this.getCurrency();
+    }
+
+    /**
+     * Returns default value for "percent_steem_dollars" comment option
+     * @return {number}
+     */
+    getDefaultPercentSteemDollars() {
+        return 10000;
+    }
+
+    /**
+     * Returns default value for "allow_votes" comment option
+     * @return {boolean}
+     */
+    getDefaultAllowVotes() {
+        return true;
+    }
+
+    /**
+     * Returns default value for "allow_curation_rewards" comment option
+     * @return {boolean}
+     */
+    getDefaultAllowCurationRewards() {
+        return true;
+    }
+
+    /**
+     * Builds beneficiaries in Chain format received from input options
+     * @param {Object} bOptions
+     * @return {{account: string, weight: number}[]}
+     */
+    buildBeneficiariesFromOptions(bOptions) {
+        let beneficiaries = [];
+        for (let username in bOptions) {
+            beneficiaries.push({
+                account: username,
+                weight: bOptions[username] * 100,
+            });
+        }
+
+        return beneficiaries;
+    }
+
     static buildJsonMetadata(tags, options) {
         let imagesList = [];
         if (options && `images` in options) {
@@ -87,10 +158,6 @@ class AbstractAdapter {
 
     static getPlaceholders() {
         return constant.placeholders;
-    }
-
-    static getPercentSteemDollars() {
-        return 10000;
     }
 
     isWif(wif) {
@@ -182,10 +249,10 @@ class AbstractAdapter {
                     {
                         author: author,
                         permlink: permlink,
-                        max_accepted_payout: '1000000.000 ' + this.constructor.getCurrency(),
-                        percent_steem_dollars: this.constructor.getPercentSteemDollars(),
-                        allow_votes: true,
-                        allow_curation_rewards: true
+                        max_accepted_payout: this.getDefaultMaxAcceptedPayout(),
+                        percent_steem_dollars: this.getDefaultPercentSteemDollars(),
+                        allow_votes: this.getDefaultAllowVotes(),
+                        allow_curation_rewards: this.getDefaultAllowCurationRewards(),
                     }
                 ]
             ]
@@ -268,8 +335,14 @@ class AbstractAdapter {
         }
     }
 
-    getReturnVotesParameter()
-    {
+    /**
+     * Returns parameter for "apiGetContent" method
+     * In some Chains api.getContent method require third parameter
+     * which indicates does this call will return active votes for comment or not
+     *
+     * @return {null|number}
+     */
+    getReturnVotesParameter() {
         return null
     }
 
@@ -392,14 +465,14 @@ class AbstractAdapter {
 
     /**
      * Performs vote operation for post/comment
-     * @param {string} author   Username of author
-     * @param {string} permlink
      * @param {string} voter    Username of voter
      * @param {string} wif      Private key (WIF) of voter
+     * @param {string} author   Username of author
+     * @param {string} permlink
      * @param {int}    weight   Weight of vote
      * @returns {Promise<Object>}
      */
-    async broadcastVote(author, permlink, voter, wif, weight)
+    async broadcastVote(voter, wif, author, permlink, weight)
     {
         const currentInstance = this;
         return new Promise((resolve, reject) => {
@@ -416,6 +489,99 @@ class AbstractAdapter {
                         }
                     ]]
                 },
+                { posting: wif },
+                function (err, result) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                }
+            );
+        });
+    }
+
+    /**
+     * Performs publish comment/post operation
+     * @param {string} author Username of comment's author
+     * @param {string} wif Private key (WIF) of author
+     * @param {string} body Text of comment/post
+     * @param {Object} options Additional options
+     *                          - title
+     *                          - permlink
+     *                          - tags
+     *                          - app
+     *                          - format
+     *                          - parent_author
+     *                          - parent_permlink
+     *                          - beneficiaries
+     *
+     * @returns {Promise<Object>}
+     */
+    async broadcastComment(author, wif, body, options)
+    {
+        const validationErrors = AdapterValidator.validateBroadcastCommentArguments(
+            author
+            , wif
+            , body
+            , options
+        );
+        if (validationErrors.length > 0) {
+            return new Promise((resolve, reject) => {
+                reject(new Error(
+                    `Validation errors: ` + JSON.stringify(validationErrors)
+                ));
+            });
+        }
+
+        const currentInstance = this
+            , operations = []
+        ;
+        let currentOptions = Object.assign({}, options);
+        currentOptions.app = options.app || ChainConstant.COMMENT_APP_NAME;
+        currentOptions.format = options.format || ChainConstant.COMMENT_FORMAT;
+
+        let commentOperation = null;
+        if (
+            false === (`parent_author` in options)
+            || false === Boolean(options.parent_author)
+        ) {
+            commentOperation = await this[_buildPostOperation](
+                author
+                , body
+                , currentOptions
+            );
+        } else {
+            commentOperation = await this[_buildCommentOperation](
+                author
+                , body
+                , currentOptions
+            );
+        }
+        operations.push(commentOperation);
+
+        if (`beneficiaries` in options && options.beneficiaries) {
+            operations.push([
+                `comment_options`,
+                {
+                    author: author,
+                    permlink: commentOperation[1].permlink,
+                    max_accepted_payout: this.getDefaultMaxAcceptedPayout(),
+                    percent_steem_dollars: this.getDefaultPercentSteemDollars(),
+                    allow_votes: this.getDefaultAllowVotes(),
+                    allow_curation_rewards: this.getDefaultAllowCurationRewards(),
+                    extensions: [[
+                        0,
+                        { beneficiaries: this.buildBeneficiariesFromOptions(options.beneficiaries) },
+                    ]],
+                }
+            ]);
+        }
+
+        return new Promise((resolve, reject) => {
+            currentInstance.reconnect();
+            currentInstance.connection.broadcast.send(
+                { extensions: [], operations: operations },
                 { posting: wif },
                 function (err, result) {
                     if (err) {
@@ -572,6 +738,104 @@ class AbstractAdapter {
             }
         );
     }
+
+    // private methods
+
+    /**
+     * Builds "comment" operation for broadcast request at new Post case
+     * @param {string} author
+     * @param {string} body
+     * @param {Object} options
+     * @return {Promise<*[]>}
+     */
+    async [_buildPostOperation](author, body, options) {
+        const tags = options.tags.map((item) => {
+            return ChainTool.stripAndTransliterate(item);
+        });
+        let permlink = options.permlink
+            || ChainTool.stripAndTransliterate(options.title)
+        ;
+
+        this.reconnect();
+        const postContent = await this.apiGetContent(
+            author
+            , permlink
+            , this.getReturnVotesParameter()
+        );
+        if (postContent.id > 0) {
+            permlink = ChainTool.buildUniquePermlink(permlink);
+        }
+
+        return [
+            `comment`,
+            {
+                parent_author: ``,
+                parent_permlink: tags[0],
+                author: author,
+                permlink: permlink,
+                title: options.title,
+                body: body,
+                jsonMetadata: JSON.stringify({
+                    app: options.app,
+                    format: options.format,
+                    tags: tags,
+                }),
+            }
+        ];
+    }
+
+    /**
+     * Builds "comment" operation for broadcast request at new Comment case
+     * @param {string} author
+     * @param {string} body
+     * @param {Object} options
+     * @return {Promise<*[]>}
+     */
+    async [_buildCommentOperation](author, body, options) {
+        this.reconnect();
+        const postContent = await this.apiGetContent(
+            options.parent_author
+            , options.parent_permlink
+            , this.getReturnVotesParameter()
+        );
+        if (0 === postContent.id) {
+            return new Promise((resolve, reject) => {
+                reject(new Error(sprintf(
+                    `Cannot find post "%s" to add comment to it.`
+                    , JSON.stringify({
+                        author: options.parent_author,
+                        permlink: options.parent_permlink,
+                    })
+                )));
+            });
+        }
+        let tags = [];
+        try {
+            const metadata = JSON.parse(postContent.json_metadata);
+            if (`tags` in metadata && metadata.tags) {
+                tags = metadata.tags;
+            }
+        } catch (err) {}
+
+        return [
+            `comment`,
+            {
+                parent_author: options.parent_author,
+                parent_permlink: options.parent_author,
+                author: author,
+                permlink: ChainTool.buildCommentPermlink(
+                    options.parent_author
+                    , options.parent_permlink
+                ),
+                body: body,
+                jsonMetadata: JSON.stringify({
+                    app: options.app,
+                    format: options.format,
+                    tags: tags,
+                }),
+            }
+        ];
+    }
 }
 
 class Steem extends AbstractAdapter
@@ -587,8 +851,7 @@ class Steem extends AbstractAdapter
         }
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `SBD`;
     }
 
@@ -656,8 +919,7 @@ class Golos extends AbstractAdapter
         this.connection = require(`golos-js`);
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `GBG`;
     }
 
@@ -688,6 +950,9 @@ class Golos extends AbstractAdapter
         this.connection.config.set(`websocket`, `wss://ws.golos.io`);
     }
 
+    /**
+     * @inheritdoc
+     */
     getReturnVotesParameter() {
         return -1
     }
@@ -706,8 +971,7 @@ class Vox extends AbstractAdapter
         }
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `GOLD`;
     }
 
@@ -759,8 +1023,7 @@ class Wls extends AbstractAdapter
         this.reconnect();
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `WLS`;
     }
 
@@ -817,8 +1080,7 @@ class Serey extends AbstractAdapter
         }
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `SRD`;
     }
 
@@ -852,8 +1114,7 @@ class Weku extends AbstractAdapter
         }
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `WKD`;
     }
 
@@ -871,6 +1132,8 @@ class Weku extends AbstractAdapter
     }
 
     reconnect() {
+        console.log(`here`);
+
         this.connection.api.setOptions({ url: `wss://standby.weku.io:8190` });
         this.connection.config.set(`address_prefix`, `WKA`);
         this.connection.config.set(`chain_id`, `b24e09256ee14bab6d58bfa3a4e47b0474a73ef4d6c47eeea007848195fa085e`);
@@ -888,8 +1151,7 @@ class Smoke extends AbstractAdapter
         }
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `SMOKE`;
     }
 
@@ -951,8 +1213,7 @@ class Viz extends AbstractAdapter
         this.connection = require(`viz-world-js`);
     }
 
-    static getCurrency()
-    {
+    getCurrency() {
         return `VIZ`;
     }
 
@@ -1004,6 +1265,9 @@ class Viz extends AbstractAdapter
         this.connection.config.set(`websocket`, `wss://ws.viz.ropox.tools`);
     }
 
+    /**
+     * @inheritdoc
+     */
     getReturnVotesParameter() {
         return -1
     }

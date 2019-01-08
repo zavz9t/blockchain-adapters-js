@@ -1,9 +1,9 @@
 {
   "name": "chain-tools-js",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A batch of tools to work with BlockChains.",
   "scripts": {
-    "test": "mocha"
+    "test": "NODE_ENV=test NODE_PATH=$PWD mocha --recursive -r chai/register-should"
   },
   "repository": {
     "type": "git",
@@ -26,15 +26,20 @@
     "golos-js": "^0.7.7",
     "jquery": "^3.3.1",
     "numeral": "^2.0.6",
+    "moment": "^2.23.0",
     "sleep-promise": "^8.0.1",
     "sprintf-js": "^1.1.2",
-    "viz-world-js": "^0.9.10",
+    "url-parse": "^1.4.4",
+    "viz-world-js": "^0.9.12",
     "wlsjs-staging": "^0.1.4",
-    "url-parse": "^1.4.4"
+    "better-validator": "^2.1.8"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
+    "faker": "^4.1.0",
     "mocha": "^5.2.0",
-    "mock-require": "^3.0.2"
+    "mock-require": "^3.0.2",
+    "sinon": "^7.2.2"
   },
   "engines": {
     "node": "10.x"
