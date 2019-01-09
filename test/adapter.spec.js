@@ -14,7 +14,7 @@ describe(`adapter`, () => {
         sandbox.restore();
     });
 
-    describe.only(`WekuAdapter`, () => {
+    describe(`WekuAdapter`, () => {
 
         const adapter = ChainAdapter.factory(ChainConstant.WEKU);
         let adapterMock = null;
@@ -163,7 +163,7 @@ describe(`adapter`, () => {
                             , permlink: expectedPermlink
                             , title: postTitle
                             , body: postBody
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: expectedTags
@@ -280,7 +280,7 @@ describe(`adapter`, () => {
                             , permlink: expectedPermlink
                             , title: postTitle
                             , body: postBody
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: expectedTags
@@ -349,7 +349,7 @@ describe(`adapter`, () => {
                             , permlink: postPermlink
                             , title: postTitle
                             , body: postBody
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: expectedTags
@@ -414,7 +414,7 @@ describe(`adapter`, () => {
                             , permlink: postPermlink
                             , title: postTitle
                             , body: postBody
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: appName
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: expectedTags
@@ -484,7 +484,7 @@ describe(`adapter`, () => {
                             , permlink: postPermlink
                             , title: postTitle
                             , body: postBody
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: format
                                 , tags: expectedTags
@@ -559,7 +559,7 @@ describe(`adapter`, () => {
                                 , permlink: expectedPermlink
                                 , title: postTitle
                                 , body: postBody
-                                , jsonMetadata: JSON.stringify({
+                                , json_metadata: JSON.stringify({
                                     app: ChainConstant.COMMENT_APP_NAME
                                     , format: ChainConstant.COMMENT_FORMAT
                                     , tags: expectedTags
@@ -656,11 +656,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: postTags
@@ -695,7 +696,7 @@ describe(`adapter`, () => {
             toolMock.verify();
         });
 
-        it(`should keep tags empty if "jsonMetadata" was corrupted`, async () => {
+        it(`should keep tags empty if "json_metadata" was corrupted`, async () => {
             // given
             const parentAuthor = faker.internet.userName().toLowerCase()
                 , parentPermlink = ChainTool.stripAndTransliterate(faker.random.words(5))
@@ -729,11 +730,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: []
@@ -768,7 +770,7 @@ describe(`adapter`, () => {
             toolMock.verify();
         });
 
-        it(`should keep tags empty if "jsonMetadata" received without "tags"`, async () => {
+        it(`should keep tags empty if "json_metadata" received without "tags"`, async () => {
             // given
             const parentAuthor = faker.internet.userName().toLowerCase()
                 , parentPermlink = ChainTool.stripAndTransliterate(faker.random.words(5))
@@ -805,11 +807,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: []
@@ -990,11 +993,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: postTags
@@ -1073,11 +1077,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: appName
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: postTags
@@ -1156,11 +1161,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: format
                                 , tags: postTags
@@ -1239,11 +1245,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: postTags
@@ -1322,11 +1329,12 @@ describe(`adapter`, () => {
                         , resultCallback
                         , [[`comment`, {
                             parent_author: parentAuthor
-                            , parent_permlink: parentAuthor
+                            , parent_permlink: parentPermlink
                             , author: author
                             , permlink: expectedPermlink
+                            , title: ``
                             , body: body
-                            , jsonMetadata: JSON.stringify({
+                            , json_metadata: JSON.stringify({
                                 app: ChainConstant.COMMENT_APP_NAME
                                 , format: ChainConstant.COMMENT_FORMAT
                                 , tags: postTags
@@ -1409,11 +1417,12 @@ describe(`adapter`, () => {
                         , [
                             [`comment`, {
                                 parent_author: parentAuthor
-                                , parent_permlink: parentAuthor
+                                , parent_permlink: parentPermlink
                                 , author: author
                                 , permlink: expectedPermlink
+                                , title: ``
                                 , body: body
-                                , jsonMetadata: JSON.stringify({
+                                , json_metadata: JSON.stringify({
                                     app: ChainConstant.COMMENT_APP_NAME
                                     , format: ChainConstant.COMMENT_FORMAT
                                     , tags: postTags

@@ -1,6 +1,6 @@
 {
   "name": "chain-tools-js",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A batch of tools to work with BlockChains.",
   "scripts": {
     "test": "NODE_ENV=test NODE_PATH=$PWD mocha --recursive -r chai/register-should"
@@ -23,16 +23,16 @@
   "dependencies": {
     "@scorum/scorum-js": "^2.10.0",
     "@steemit/steem-js": "^0.7.2",
+    "better-validator": "^2.1.8",
     "golos-js": "^0.7.7",
     "jquery": "^3.3.1",
-    "numeral": "^2.0.6",
     "moment": "^2.23.0",
+    "numeral": "^2.0.6",
     "sleep-promise": "^8.0.1",
     "sprintf-js": "^1.1.2",
     "url-parse": "^1.4.4",
-    "viz-world-js": "^0.9.12",
-    "wlsjs-staging": "^0.1.4",
-    "better-validator": "^2.1.8"
+    "viz-world-js": "^0.9.13",
+    "wlsjs-staging": "^0.1.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",

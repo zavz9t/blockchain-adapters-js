@@ -767,18 +767,18 @@ class AbstractAdapter {
         }
 
         return [
-            `comment`,
-            {
-                parent_author: ``,
-                parent_permlink: tags[0],
-                author: author,
-                permlink: permlink,
-                title: options.title,
-                body: body,
-                jsonMetadata: JSON.stringify({
-                    app: options.app,
-                    format: options.format,
-                    tags: tags,
+            `comment`
+            , {
+                parent_author: ``
+                , parent_permlink: tags[0]
+                , author: author
+                , permlink: permlink
+                , title: options.title
+                , body: body
+                , json_metadata: JSON.stringify({
+                    app: options.app
+                    , format: options.format
+                    , tags: tags
                 }),
             }
         ];
@@ -818,20 +818,21 @@ class AbstractAdapter {
         } catch (err) {}
 
         return [
-            `comment`,
-            {
-                parent_author: options.parent_author,
-                parent_permlink: options.parent_author,
-                author: author,
-                permlink: ChainTool.buildCommentPermlink(
+            `comment`
+            , {
+                parent_author: options.parent_author
+                , parent_permlink: options.parent_permlink
+                , author: author
+                , permlink: ChainTool.buildCommentPermlink(
                     options.parent_author
                     , options.parent_permlink
-                ),
-                body: body,
-                jsonMetadata: JSON.stringify({
-                    app: options.app,
-                    format: options.format,
-                    tags: tags,
+                )
+                , title: ``
+                , body: body
+                , json_metadata: JSON.stringify({
+                    app: options.app
+                    , format: options.format
+                    , tags: tags
                 }),
             }
         ];
@@ -1132,8 +1133,6 @@ class Weku extends AbstractAdapter
     }
 
     reconnect() {
-        console.log(`here`);
-
         this.connection.api.setOptions({ url: `wss://standby.weku.io:8190` });
         this.connection.config.set(`address_prefix`, `WKA`);
         this.connection.config.set(`chain_id`, `b24e09256ee14bab6d58bfa3a4e47b0474a73ef4d6c47eeea007848195fa085e`);
